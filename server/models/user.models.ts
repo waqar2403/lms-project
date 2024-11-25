@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 const emailRegexPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export interface Iuser extends Document {
+export interface IUser extends Document {
   naem: string;
   email: string;
   password: string;
@@ -61,7 +61,7 @@ const userSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-userSchema.pre<Iuser>("save", async function (next) {
+userSchema.pre<IUser>("save", async function (next) {
   if (!this.isModified("password")) {
     next();
   }
@@ -72,5 +72,5 @@ userSchema.methods.comparePassword = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const userModel = model<Iuser>("User", userSchema);
+const userModel = model<IUser>("User", userSchema);
 export default userModel;
