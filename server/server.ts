@@ -1,5 +1,5 @@
 import {app} from "./app";
-import connectDB from "./db";
+import connectDB from "./utils/db";
 require("dotenv").config();
 connectDB();
 app.listen(process.env.PORT, () => {

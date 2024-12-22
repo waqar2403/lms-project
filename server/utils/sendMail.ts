@@ -21,7 +21,7 @@ const sendMail = async (options: Emailoptions):Promise <void> => {
     const {email,subject,template,data} = options;
 
     //get path to template
-    const templatePath = path.join(__dirname,`../mails`,template);
+    const templatePath = path.join(__dirname,`./mail/activation-mail.ejs`,template);
     const html = await ejs.renderFile(templatePath,data);
     const mailoptions = {
         from: process.env.SMTP_EMAIL,

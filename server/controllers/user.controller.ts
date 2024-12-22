@@ -1,5 +1,5 @@
 import { Request,Response,NextFunction } from "express";
-import ErrorHandler from "../ErrorHandler";
+import ErrorHandler from "../utils/ErrorHandler";
 require("dotenv").config();
 import jwt, { Secret } from "jsonwebtoken";
 import { catchAsyncError } from "../middleware/AsyncErrors";
@@ -7,7 +7,7 @@ import userModel,{ IUser } from "../models/user.models";
 
 import ejs from "ejs";
 import path from "path";
-import sendMail from "../sendMail";
+import sendMail from "../utils/sendMail";
 
 interface IRegisterUser {
     name: string;
