@@ -9,58 +9,61 @@ import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
 
-interface IRegisterUser {
-    name: string;
-    email: string;
-    password: string;
-    avatar?: string;
+interface IRegisterationBody{
+    name:string;
+    email:string;
+    password:string;
+    avatar?:string;
 }
 
-export const registerUser = catchAsyncError(async (req: Request,res: Response,next: NextFunction) => {
-   try {
-    const { name,email,password }: IRegisterUser = req.body;
-    const isEmailExist = await userModel.findOne({email});
-    if (isEmailExist) {
-        return next(new ErrorHandler("Email already exists",400));
-    }
-    const user:IRegisterUser = {
+export const registrationUser = catchAsyncError(async(req:Request,res:Response,next:NextFunction) => {
+  try{
+    const{name,email,password} = req.body;
+    const ifEmailExist = await userModel.findOne({email});
+    if(ifEmailExist){
+        return new ErrorHandler("Email Already Exists !!!",500)
+    };
+    const user:IRegisterationBody = {
         name,
         email,
         password,
-    };
+    }
     const activationToken = createActivationToken(user);
-    const activationCode = activationToken.activationToken;
+    const ActivationCode = activationToken.activationCode;
+    const data = {user:{name:user.name},ActivationCode}
+    const html = await ejs.renderFile(path.join(__dirname,"../mail/activation-mail.ejs"),data);
 
-    const data = {user:{name:user.name},activationCode}
-
-    const html = await ejs.renderFile(path.join(__dirname,"../mails/activation-mail.ejs"),data);
-    
     try{
         await sendMail({
-            email : user.email,
-            subject: "Account Activation",
-            template: "activation-mail",
+            email: user.email,
+            subject:"Account Activation",
+            template:"activation-mail.ejs",
             data,
-        });
+        })
+        res.status(200).json({
+            success:true,
+            message:"Please check your email to activate your account",
+            activationToken:activationToken.token,
+        })
+    }
+    catch(error:any){
+    return next(new ErrorHandler("Email Could not be sent",500))
+    }
 
-        res.status(200).json({})
-    }
-    catch (error:any) {
-        return next(new ErrorHandler(error.message,500));
-    }
-} catch (error:any) {
-    return next(new ErrorHandler(error.message,400));
-   }
+  }
+  catch (type:any) {
+    return next(new ErrorHandler(type.message, 400));
+  }
 });
 
-interface IActivationToken {
-    token: string;
-    activationToken: string;
+interface IActivationToken{
+    token:string,
+    activationCode:string,
 }
-export const createActivationToken = (user: any): IActivationToken => {
-    const activationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const token = jwt.sign({user,activationCode},process.env.ACTIVATION_CODE as Secret,{
-        expiresIn: "5m"
-    });
-    return {token,activationToken: activationCode};
+
+export const createActivationToken = (user: any):IActivationToken =>{
+  const activationCode  = Math.floor(1000 + Math.random()*9000).toString();
+  console.log(activationCode);
+  const token = jwt.sign({user,activationCode},process.env.JWTKEY as Secret,{expiresIn:"5m",})
+    return {token,activationCode}
 }
