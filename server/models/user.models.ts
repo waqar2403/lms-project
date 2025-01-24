@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const emailRegexPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface IUser extends Document {
-  naem: string;
+  name: string;
   email: string;
   password: string;
   avatar: {

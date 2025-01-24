@@ -67,3 +67,27 @@ export const createActivationToken = (user: any):IActivationToken =>{
   const token = jwt.sign({user,activationCode},process.env.JWTKEY as Secret,{expiresIn:"5m",})
     return {token,activationCode}
 }
+
+interface IActivationRequest{
+    activation_Code:string;
+    activiation_Token:string;  
+}
+export const activateUser = catchAsyncError(async(req:Request,res:Response,next:NextFunction) => {
+  try{
+    const {activation_Code,activiation_Token} = req.body as IActivationRequest;
+    const newUser:{user:IUser,activationCode:string} = jwt.verify(activiation_Token,process.env.JWTKEY as Secret) as {user:IUser,activationCode:string};
+    if(activation_Code !== newUser.activationCode){
+      return next(new ErrorHandler("Invalid Activation Code",400)) 
+    }
+    const {name,email,password} = newUser.user;
+    const isExists = await userModel.findOne({email});
+    if(isExists ) {return next(new ErrorHandler("User Already Exists",400))}
+    await userModel.create({name,email,password});
+    res.status(200).json({
+      success:true,
+      message:"Account Activated",
+    }) 
+  }catch(error:any){
+    return next(new ErrorHandler("Error",500))
+  }
+})
