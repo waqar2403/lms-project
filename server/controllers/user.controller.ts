@@ -70,12 +70,12 @@ export const createActivationToken = (user: any):IActivationToken =>{
 
 interface IActivationRequest{
     activation_Code:string;
-    activiation_Token:string;  
+    activation_Token:string;  
 }
 export const activateUser = catchAsyncError(async(req:Request,res:Response,next:NextFunction) => {
   try{
-    const {activation_Code,activiation_Token} = req.body as IActivationRequest;
-    const newUser:{user:IUser,activationCode:string} = jwt.verify(activiation_Token,process.env.JWTKEY as Secret) as {user:IUser,activationCode:string};
+    const {activation_Code,activation_Token} = req.body as IActivationRequest;
+    const newUser:{user:IUser,activationCode:string} = jwt.verify(activation_Token,process.env.JWTKEY as Secret) as {user:IUser,activationCode:string};
     if(activation_Code !== newUser.activationCode){
       return next(new ErrorHandler("Invalid Activation Code",400)) 
     }
