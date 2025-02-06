@@ -4,6 +4,7 @@ require("dotenv").config();
 import jwt, { Secret } from "jsonwebtoken";
 import { catchAsyncError } from "../middleware/AsyncErrors";
 import userModel,{ IUser } from "../models/user.models";
+import { sendToken } from "../utils/jwt";
 
 import ejs from "ejs";
 import path from "path";
@@ -97,22 +98,31 @@ interface ILoginRequest{
     password:string;
 }
 
-export const loginUser = catchAsyncError(async(req:Request,res:Response,next:NextFunction) => {
-try{
-    const {email,password} = req.body as ILoginRequest;
-    if(!email || !password){
-        return next(new ErrorHandler("Please Enter Email and Password",400))
+export const loginUser = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } = req.body as ILoginRequest;
+
+      if (!email || !password) {
+        return next(
+          new ErrorHandler("Please enter your email and password", 400)
+        );
+      }
+
+      const user = await userModel.findOne({ email }).select("+password");
+
+      if (!user) {
+        return next(new ErrorHandler("Invalid email or password", 400));
+      }
+
+      const isPasswordMatch = await user.comparePassword(password);
+
+      if (!isPasswordMatch) {
+        return next(new ErrorHandler("Invalid email and password", 400));
+      }
+      sendToken(user, 201, res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
     }
-    const user = await userModel.findOne({email}).select("+password");  
-    if(!user){
-        return next(new ErrorHandler("Invalid Email or Password",400))
-    }
-    const isMatch = await user.comparePassword(password);
-    if(!isMatch){
-        return next(new ErrorHandler("Invalid Email or Password",400))
-    } 
-    
-}catch(error:any){
-    return next(new ErrorHandler(error.message,500))
-}
-})
+  }
+);
